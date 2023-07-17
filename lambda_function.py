@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+import boto3
 
 def lambda_handler(event, context):
     url = "https://www.imastudent.com/sony-zv-e10-mirrorless-camera-with-16-50mm-lens-black"
@@ -12,11 +13,24 @@ def lambda_handler(event, context):
     price_digits = ''.join(filter(str.isdigit, price_str))
     price = int(price_digits)
     
-    userPrice = 65000
+    user_price = 61490
     
-    if userPrice == price:
-        result = "User price is equal to scraped price"
-    else:
-        result = "User price is not equal to scraped price"
+    ses_client = boto3.client('ses')
+
+    recipient_email = 'petesview24x7@gmail.com'
+
+    subject = 'Price Match'
+    body = 'The user price matches the scraped price.'
     
-    return result
+    if user_price == price:
+        # Send the email
+        response = ses_client.send_email(
+        Source='peterj1298@gmail.com',
+        Destination={'ToAddresses': [recipient_email]},
+        Message={
+            'Subject': {'Data': subject},
+            'Body': {'Text': {'Data': body}}
+        }
+    )
+        
+    return price
